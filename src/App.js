@@ -1,7 +1,10 @@
+import { ARScene } from '~/components/ARScene';
+
 const App = () => {
   return (
     <div className="App">
-      App
+      <ARScene
+      />
     </div>
   );
 };
