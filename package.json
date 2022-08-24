@@ -134,6 +134,18 @@
   "babel": {
     "presets": [
       "react-app"
+    ],
+    "plugins": [
+      [
+        "babel-plugin-root-import",
+        {
+          "rootPathSuffix": "src",
+          "rootPathPrefix": "~"
+        }
+      ]
     ]
+  },
+  "devDependencies": {
+    "babel-plugin-root-import": "^6.6.0"
   }
 }
