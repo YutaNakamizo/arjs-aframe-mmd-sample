@@ -4,13 +4,12 @@ import {
   useEffect,
   useMemo,
 } from 'react';
-import '@ar-js-org/ar.js';
-import 'aframe';
 import { CameraConfirm } from '~/components/CameraConfirm';
 import { CameraRejected } from '~/components/CameraRejected';
 import { UnknownError } from '~/components/UnknownError';
 
 const ARScene = ({
+  elements = [],
   ...props
 }) => {
   const [ haveUnknownError, setHaveUnknownError ] = useState(false);
@@ -96,12 +95,15 @@ const ARScene = ({
     cameraAccessIsLoaded,
     haveCameraAccess,
     arjsIsEnabled,
+    enableARjs,
   ]);
 
-  const aframeContainerElmRef = useRef();
+  // Setup scene
   const sceneElmRef = useRef();
+  const ambientLightElmRef = useRef();
   const markerElmRef = useRef();
   const cameraElmRef = useRef();
+  const [ arSceneIsReady, setARSceneIsReady ] = useState(false);
   useEffect(() => {
     if(!arjsIsEnabled) return;
 
@@ -110,21 +112,15 @@ const ARScene = ({
     scene.setAttribute('arjs', '');
     scene.setAttribute('vr-mode-ui', 'enabled: false;');
 
+    const ambientLight = ambientLightElmRef.current = document.createElement('a-entity');
+    ambientLight.setAttribute('light', 'type:ambient; color:#ffffff; intensity:0.6;');
+    scene.appendChild(ambientLight);
+
     const marker = markerElmRef.current = document.createElement('a-marker');
     marker.setAttribute('type', 'pattern');
     marker.setAttribute('preset', 'hiro');
     marker.setAttribute('emitevents', true);
-    marker.insertAdjacentHTML(
-      'beforeend',
-      `
-        <a-entity
-          geometry="primitive: box;"
-          material="color: red;"
-          position="0 0.5 0"
-          scale="1 1 1"
-        />
-      `
-    );
+
     marker.addEventListener('markerFound', () => {
       console.log('Marker Found');
     });
@@ -139,14 +135,44 @@ const ARScene = ({
 
     document.body.appendChild(scene);
 
+    setARSceneIsReady(true);
+
     return () => {
-      scene.remove();
+      sceneElmRef.current.remove();
       sceneElmRef.current = null;
       markerElmRef.current = null;
       cameraElmRef.current = null;
+
+      setARSceneIsReady(false);
     };
   }, [
     arjsIsEnabled,
+  ]);
+
+  // Setup elements in a-marker
+  useEffect(() => {
+    if(
+      !arSceneIsReady
+      || !markerElmRef.current
+    ) return;
+
+    const markerGroup = markerElmRef.current.object3D;
+    markerGroup.clear();
+    console.log(markerGroup)
+    for(const elm of elements) {
+      const {
+        object,
+        audioListener,
+      } = elm;
+
+      if(object) markerGroup.add(object);
+      if(audioListener) markerGroup.add(audioListener);
+    }
+
+    return;
+  }, [
+    arSceneIsReady,
+    elements,
   ]);
 
   return (

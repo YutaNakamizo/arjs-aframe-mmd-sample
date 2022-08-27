@@ -9,6 +9,8 @@ import {
 } from '@mui/material/colors';
 import '~/index.css';
 import { App } from '~/App';
+import 'aframe';
+import '@ar-js-org/ar.js';
 
 const theme = createTheme({
   palette: {
